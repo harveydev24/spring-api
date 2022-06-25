@@ -6,8 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,37 +24,6 @@ public class OrderQueryRepository {
         return result;
     }
 
-    public List<OrderQueryDto> findAllByDto_optimization() {
-        List<OrderQueryDto> result = findOrders();
-
-        Map<Long, List<OrderItemQueryDto>> orderItemMap = findOrderItemMap(toOrderIds(result));
-
-        result.forEach(o -> o.setOrderItems(orderItemMap.get(o.getOrderId())));
-
-        return result;
-    }
-
-    private Map<Long, List<OrderItemQueryDto>> findOrderItemMap(List<Long> orderIds) {
-        List<OrderItemQueryDto> orderItems = em.createQuery(
-                        "SELECT new jpabook.jpashop.repository.query.OrderItemQueryDto(oi.order.id, i.name, oi.orderPrice, oi.count)" +
-                                " FROM OrderItem oi" +
-                                " JOIN oi.item i" +
-                                " WHERE oi.order.id in :orderIds", OrderItemQueryDto.class)
-                .setParameter("orderIds", orderIds)
-                .getResultList();
-
-        Map<Long, List<OrderItemQueryDto>> orderItemMap = orderItems.stream()
-                .collect(Collectors.groupingBy(orderItemQueryDto -> orderItemQueryDto.getOrderId()));
-        return orderItemMap;
-    }
-
-    private List<Long> toOrderIds(List<OrderQueryDto> result) {
-        List<Long> orderIds = result.stream()
-                .map(o -> o.getOrderId())
-                .collect(Collectors.toList());
-        return orderIds;
-    }
-
     private List<OrderItemQueryDto> findOrderItems(Long orderId) {
         return em.createQuery(
                         "SELECT new jpabook.jpashop.repository.query.OrderItemQueryDto(oi.order.id, i.name, oi.orderPrice, oi.count)" +
@@ -73,17 +40,5 @@ public class OrderQueryRepository {
                         " FROM Order o" +
                         " JOIN o.member m" +
                         " JOIN o.delivery d", OrderQueryDto.class).getResultList();
-    }
-
-
-    public List<OrderFlatDto> findAllByDto_flat() {
-        return em.createQuery(
-                "SELECT new jpabook.jpashop.repository.query.OrderFlatDto(o.id, m.name, o.orderDate, o.status, d.address, i.name, oi.orderPrice, oi.count)" +
-                        " FROM Order o" +
-                        " JOIN o.member m" +
-                        " JOIN o.delivery d" +
-                        " JOIN o.orderItems oi" +
-                        " JOIN oi.item i", OrderFlatDto.class
-        ).getResultList();
     }
 }
