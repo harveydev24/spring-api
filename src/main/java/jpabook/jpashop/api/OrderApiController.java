@@ -50,17 +50,13 @@ public class OrderApiController {
     }
 
     @GetMapping("/api/v3/orders")
-<<<<<<< HEAD
-    public List<jpabook.jpashop.service.query.OrderDto> orderV3() {
-        return orderQueryService.orderV3();
-=======
     public List<OrderDto> orderV3() {
         List<Order> orders = orderRepository.findAllWithItem();
         List<OrderDto> collect = orders.stream()
                 .map(o -> new OrderDto(o))
                 .collect(Collectors.toList());
         return collect;
->>>>>>> parent of 03c73a3 (Implement collection optimization by one-query)
+
     }
 
     @GetMapping("/api/v3.1/orders")
